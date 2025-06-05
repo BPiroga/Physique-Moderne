@@ -1,4 +1,4 @@
-import numpy as np
+ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -11,22 +11,20 @@ nt = 90000
 nd = int(nt / 1000) + 1  # Nombre d'images pour l'animation
 s = dt / dx**2
 
-# ----- PARAMÈTRES INITIAUX -----
-xc = 0.6       # Centre du paquet d'onde
-sigma = 0.05   # Largeur du paquet
-
 # ----- INPUT UTILISATEUR -----
 e = float(input("Entrez la valeur de E/V0 (ex: 5) : "))
-v0 = -4000
+v0 = -4000  # Profondeur du puits (valeur négative)
 E = e * v0
 k = math.sqrt(2 * abs(E))
 
 # ----- ESPACE ET POTENTIEL -----
 o = np.linspace(0, (nx - 1) * dx, nx)
 V = np.zeros(nx)
-V[(o >= 0.8) & (o <= 0.9)] = v0  # Puits de potentiel
+V[(o >= 0.8) & (o <= 0.9)] = v0  # Puits de potentiel carré de largeur 0.1
 
 # ----- CONDITION INITIALE : PAQUET D’ONDE -----
+xc = 0.6       # Centre du paquet
+sigma = 0.05   # Largeur du paquet
 A = 1 / (math.sqrt(sigma * math.sqrt(math.pi)))
 cpt = A * np.exp(1j * k * o - ((o - xc) ** 2) / (2 * sigma**2))
 
@@ -38,7 +36,7 @@ im = np.imag(cpt)
 b = np.zeros(nx)
 densite[0, :] = np.abs(cpt) ** 2
 
-# ----- PROPAGATION DU PAQUET D’ONDE (SCHRÖDINGER) -----
+# ----- PROPAGATION DE L'ÉQUATION DE SCHRÖDINGER -----
 it = 0
 for i in range(1, nt):
     if i % 2 != 0:
@@ -62,18 +60,18 @@ def animate(j):
     line.set_data(o, ydata)
     return line,
 
-# Mise à l'échelle du potentiel pour le superposer à la densité
-V_plot = (V / abs(v0)) * np.max(densite)  # Échelle du puits visible
-
+# ----- FIGURE -----
 fig = plt.figure()
-line, = plt.plot([], [], lw=2)
-plt.plot(o, V_plot, label="Potentiel (échelle ajustée)", color="black", linestyle="--")
-plt.ylim(0, np.max(densite) * 1.2)
+line, = plt.plot([], [], lw=2, label="Densité de probabilité")
+plt.plot(o, V, label="Puits de potentiel", color="black", linestyle="--")
+
+plt.ylim(v0 * 1.2, np.max(densite) * 1.2)  # Affiche aussi le puits en profondeur
 plt.xlim(0, 2)
 plt.xlabel("x")
-plt.ylabel("Densité de probabilité")
+plt.ylabel("Énergie & Densité")
 plt.title(f"Propagation du paquet d'ondes avec E/V0 = {e}")
 plt.legend()
 
 ani = animation.FuncAnimation(fig, animate, init_func=init, frames=nd, interval=100, blit=False)
 plt.show()
+
